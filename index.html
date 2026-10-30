@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Painel de Requisições - SLB (Simulador Drake)</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background: #eef2f5; color: #333; }
+        header { background: #003366; color: white; padding: 20px 40px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
+        header h1 { margin: 0; font-size: 20px; }
+        .rig-info-bar { background: #1e3a8a; color: #fff; padding: 12px 40px; font-size: 14px; display: flex; gap: 30px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1); }
+        .rig-info-bar span { opacity: 0.9; }
+        .rig-info-bar strong { color: #93c5fd; }
+        .container { max-width: 950px; margin: 30px auto; padding: 0 20px; }
+        .card { background: white; margin-bottom: 12px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-left: 5px solid #003366; overflow: hidden; transition: all 0.3s ease; }
+        .card-header { padding: 18px 20px; background: #fff; cursor: pointer; display: flex; justify-content: space-between; align-items: center; user-select: none; }
+        .card-header:hover { background: #f8fafc; }
+        .card-header h3 { margin: 0; color: #003366; font-size: 16px; }
+        .card-body { padding: 0 20px; max-height: 0; overflow: hidden; transition: max-height 0.3s ease, padding 0.3s ease; background: #fafbfc; border-top: 1px solid #eee; }
+        .card.active .card-body { max-height: 280px; padding: 15px 20px; }
+        .doc-list { list-style: none; padding: 0; margin: 0; }
+        .doc-list li { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px dashed #e2e8f0; font-size: 14px; }
+        .doc-list li:last-child { border-bottom: none; }
+        .doc-info { display: flex; align-items: center; gap: 10px; }
+        .valid-until { font-weight: bold; padding: 3px 8px; border-radius: 4px; font-size: 12px; }
+        .status-valido { background: #e1f5fe; color: #0277bd; }
+        .status-vencido { background: #ffebee; color: #c62828; }
+        .status-na { background: #f1f5f9; color: #475569; }
+        .seta { font-size: 12px; color: #666; transition: transform 0.3s; }
+        .card.active .seta { transform: rotate(180deg); }
+        .btn-ver { background: #0284c7; color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 500; transition: background 0.2s; }
+        .btn-ver:hover { background: #0369a1; }
+
+        /* Estilo da Janela Modal (Simulador de PDF) */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); justify-content: center; align-items: center; }
+        .modal.show { display: flex; }
+        .modal-content { background: white; padding: 25px; border-radius: 8px; width: 500px; max-width: 90%; box-shadow: 0 4px 20px rgba(0,0,0,0.25); position: relative; animation: fadeIn 0.2s ease; }
+        .close-modal { position: absolute; right: 15px; top: 12px; font-size: 24px; cursor: pointer; color: #666; font-weight: bold; }
+        .close-modal:hover { color: #000; }
+        .document-preview { background: #f8fafc; border: 1px solid #cbd5e1; padding: 20px; margin-top: 15px; border-radius: 6px; text-align: center; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>SLB — Sistema Drake (Ambiente de Homologação)</h1>
+        <span style="font-size: 13px; background: #0284c7; padding: 4px 10px; border-radius: 4px;">Perfil: PSD Student Intern</span>
+    </header>
+
+    <div class="rig-info-bar">
+        <div>Requisição: <strong>#REQ-8842</strong></div>
+        <div>Sonda / Unidade: <strong>Rig Alpha (Well Construction)</strong></div>
+        <div>Segmento: <strong>Cimentação / Workforce</strong></div>
+        <div>Status: <strong>Em Triagem de Embarque</strong></div>
+    </div>
+    
+    <div class="container">
+        <p style="color: #666; margin-bottom: 20px;">Colaboradores vinculados à requisição de embarque atual:</p>
+
+        <!-- Júlia Campos -->
+        <div class="card">
+            <div class="card-header" onclick="toggleCard(this.parentElement)">
+                <h3>Júlia Campos</h3>
+                <span class="seta">▼</span>
+            </div>
+            <div class="card-body">
+                <ul class="doc-list">
+                    <li>
+                        <div class="doc-info"><span>ASO</span> <button class="btn-ver" onclick="abrirDocumento('Júlia Campos', 'ASO', '10/01/2026 (Vencido)')">Ver Doc</button></div>
+                        <span class="valid-until status-vencido">10/01/2026 (Vencido)</span>
+                    </li>
+                    <li>
+                        <div class="doc-info"><span>CTPS</span> <button class="btn-ver" onclick="abrirDocumento('Júlia Campos', 'CTPS', '15/12/2026 (Válido)')">Ver Doc</button></div>
+                        <span class="valid-until status-valido">15/12/2026 (Válido)</span>
+                    </li>
+                    <li>
+                        <div class="doc-info"><span>Plano de Saúde</span> <button class="btn-ver" onclick="abrirDocumento('Júlia Campos', 'Plano de Saúde', '20/08/2027 (Válido)')">Ver Doc</button></div>
+                        <span class="valid-until status-valido">20/08/2027 (Válido)</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Gabriela Balbino -->
+        <div class="card">
+            <div class="card-header" onclick="toggleCard(this.parentElement)">
+                <h3>Gabriela Balbino</h3>
+                <span class="seta">▼</span>
+            </div>
+            <div class="card-body">
+                <ul class="doc-list">
+                    <li>
+                        <div class="doc-info"><span>ASO</span> <button class="btn-ver" onclick="abrirDocumento('Gabriela Balbino', 'ASO', '05/11/2026 (Válido)')">Ver Doc</button></div>
+                        <span class="valid-until status-valido">05/11/2026 (Válido)</span>
+                    </li>
+                    <li>
+                        <div class="doc-info"><span>CTPS</span> <button class="btn-ver" onclick="abrirDocumento('Gabriela Balbino', 'CTPS', '12/03/2026 (Vencido)')">Ver Doc</button></div>
+                        <span class="valid-until status-vencido">12/03/2026 (Vencido)</span>
+                    </li>
+                    <li>
+                        <div class="doc-info"><span>Plano de Saúde</span> <button class="btn-ver" onclick="abrirDocumento('Gabriela Balbino', 'Plano de Saúde', '30/10/2026 (Válido)')">Ver Doc</button></div>
+                        <span class="valid-until status-valido">30/10/2026 (Válido)</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Ariely Soares -->
+        <div class="card">
+            <div class="card-header" onclick="toggleCard(this.parentElement)">
+                <h3>Ariely Soares</h3>
+                <span class="seta">▼</span>
+            </div>
+            <div class="card-body">
+                <ul class="doc-list">
+                    <li>
+                        <div class="doc-info"><span>ASO</span> <button class="btn-ver" onclick="abrirDocumento('Ariely Soares', 'ASO', '01/02/2026 (Vencido)')">Ver Doc</button></div>
+                        <span class="valid-until status-vencido">01/02/2026 (Vencido)</span>
+                    </li>
+                    <li>
+                        <div class="doc-info"><span>CTPS</span> <button class="btn-ver" onclick="abrirDocumento('Ariely Soares', 'CTPS', '10/09/2026 (Vencido)')">Ver Doc</button></div>
+                        <span class="valid-until status-vencido">10/09/2026 (Vencido)</span>
+                    </li>
+                    <li>
+                        <div class="doc-info"><span>Plano de Saúde</span> <button class="btn-ver" onclick="abrirDocumento('Ariely Soares', 'Plano de Saúde', '15/12/2026 (Válido)')">Ver Doc</button></div>
+                        <span class="valid-until status-valido">15/12/2026 (Válido)</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Fernanda Stein -->
+        <div class="card">
+            <div class="card-header" onclick="toggleCard(this.parentElement)">
+                <h3>Fernanda Stein</h3>
+                <span class="seta">▼</span>
+            </div>
+            <div class="card-body">
+                <ul class="doc-list">
+                    <li>
+                        <div class="doc-info"><span>Diploma</span> <button class="btn-ver" onclick="abrirDocumento('Fernanda Stein', 'Diploma', 'Não se aplica')">Ver Doc</button></div>
+                        <span class="valid-until status-na">Não se aplica (Sem Validade)</span>
+                    </li>
+                    <li>
+                        <div class="doc-info"><span>NR35</span> <button class="btn-ver" onclick="abrirDocumento('Fernanda Stein', 'NR35', '15/08/2026 (Vencido)')">Ver Doc</button></div>
+                        <span class="valid-until status-vencido">15/08/2026 (Vencido)</span>
+                    </li>
+                    <li>
+                        <div class="doc-info"><span>Fatores Humanos</span> <button class="btn-ver" onclick="abrirDocumento('Fernanda Stein', 'Fatores Humanos', '20/05/2027 (Válido)')">Ver Doc</button></div>
+                        <span class="valid-until status-valido">20/05/2027 (Válido)</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Wesley Alves -->
+        <div class="card">
+            <div class="card-header" onclick="toggleCard(this.parentElement)">
+                <h3>Wesley Alves</h3>
+                <span class="seta">▼</span>
+            </div>
+            <div class="card-body">
+                <ul class="doc-list">
+                    <li>
+                        <div class="doc-info"><span>Diploma</span> <button class="btn-ver" onclick="abrirDocumento('Wesley Alves', 'Diploma', 'Não se aplica')">Ver Doc</button></div>
+                        <span class="valid-until status-na">Não se aplica (Sem Validade)</span>
+                    </li>
+                    <li>
+                        <div class="doc-info"><span>NR35</span> <button class="btn-ver" onclick="abrirDocumento('Wesley Alves', 'NR35', '10/12/2026 (Válido)')">Ver Doc</button></div>
+                        <span class="valid-until status-valido">10/12/2026 (Válido)</span>
+                    </li>
+                    <li>
+                        <div class="doc-info"><span>Fatores Humanos</span> <button class="btn-ver" onclick="abrirDocumento('Wesley Alves', 'Fatores Humanos', '10/01/2026 (Vencido)')">Ver Doc</button></div>
+                        <span class="valid-until status-vencido">10/01/2026 (Vencido)</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Janela Modal (Visualizador de Documento) -->
+    <div id="docModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="fecharModal()">&times;</span>
+            <h3 id="modalTitle" style="color: #003366; margin-top: 0; font-size: 18px;">Visualizador de Documento</h3>
+            <div class="document-preview">
+                <p style="font-weight: bold; color: #1e3a8a; margin-bottom: 5px;" id="modalDocName">Documento Oficial</p>
+                <p style="font-size: 13px; color: #475569;" id="modalStatusInfo">Status da Validade</p>
+                <div style="background: #fff; border: 1px dashed #94a3b8; padding: 25px; margin-top: 15px; border-radius: 4px; color: #64748b;">
+                    📄 [ PRÉ-VISUALIZAÇÃO DO ARQUIVO PDF ]<br>
+                    <span style="font-size: 11px;">Assinatura Digital Verificada — Sistema Drake SLB</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleCard(selectedCard) {
+            document.querySelectorAll('.card').forEach(card => {
+                if (card !== selectedCard) {
+                    card.classList.remove('active');
+                }
+            });
+            selectedCard.classList.toggle('active');
+        }
+
+        function abrirDocumento(colaborador, documento, status) {
+            document.getElementById('modalTitle').innerText = `Visualização: ${documento}`;
+            document.getElementById('modalDocName').innerText = `Colaborador(a): ${colaborador} — ${documento}`;
+            document.getElementById('modalStatusInfo').innerText = `Validade registrada: ${status}`;
+            document.getElementById('docModal').classList.add('show');
+        }
+
+        function fecharModal() {
+            document.getElementById('docModal').classList.remove('show');
+        }
+
+        // Fecha a modal se clicar fora dela
+        window.onclick = function(event) {
+            const modal = document.getElementById('docModal');
+            if (event.target === modal) {
+                fecharModal();
+            }
+        }
+    </script>
+</body>
+</html>
